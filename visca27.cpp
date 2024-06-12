@@ -23,6 +23,7 @@
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5678
+
 std::string removeSpaces(std::string input)
 {
 	input.erase(std::remove(input.begin(), input.end(), ' '), input.end());
@@ -59,21 +60,22 @@ bool Completed(std::string hex)
 {
 	return hex[2] == '5';
 }
-std::string Error(std::string hex)
+int Error(std::string hex)
 {
 	if (hex[2] == '6') {
 		if (hex[5] == '2')
-			return "Syntax";
+			return VSYNTAX_ERR;
 		if (hex[5] == '3')
-			return "Buffer Full";
+			return VBUFFERFULL_ERR;
 		if (hex[5] == '4')
-			return "Cancelled";
+			return VCANCEL_ERR;
 		if (hex[5] == '5')
-			return "No Socket";
+			return VNOSOCKET_ERR;
 		if (hex[5] == '1')
-			return "Can't Execute";
+			return VCANTEXEC_ERR;
+		return VERR;
 	}
-	return "";
+	return VOK;
 }
 std::string toUpper(const std::string& str)
 {
@@ -83,14 +85,11 @@ std::string toUpper(const std::string& str)
 	}
 	return result;
 }
-std::string SetCamera(std::string IP, std::string hexcmd)
+int SetCamera(UINT_PTR ConnectSocket, std::string hexcmd)
 {
 	int iResult;
 	WSADATA wsaData;
-	std::string result = "Error";
-
-	SOCKET ConnectSocket = INVALID_SOCKET;
-	struct sockaddr_in clientService;
+	int result = VERR;
 
 	int recvbuflen = DEFAULT_BUFLEN;
 	std::vector<unsigned char> sendbuf = hexStringToVector(hexcmd);
@@ -99,55 +98,18 @@ std::string SetCamera(std::string IP, std::string hexcmd)
 	char recvbuf[DEFAULT_BUFLEN] = "";
 
 	//----------------------
-	// Initialize Winsock
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != NO_ERROR) {
-		return "Camera Connect Error";
-	}
-
-	//----------------------
-	// Create a SOCKET for connecting to server
-	ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (ConnectSocket == INVALID_SOCKET) {
-		WSACleanup();
-		return "Camera Connect Error";
-	}
-
-	//----------------------
-	// The sockaddr_in structure specifies the address family,
-	// IP address, and port of the server to be connected to.
-	clientService.sin_family = AF_INET;
-	clientService.sin_addr.s_addr = inet_addr(IP.c_str());
-	clientService.sin_port = htons(DEFAULT_PORT);
-
-	//----------------------
-	// Connect to server.
-	iResult = connect(ConnectSocket, (SOCKADDR*)&clientService,
-		sizeof(clientService));
-	if (iResult == SOCKET_ERROR) {
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return "Camera Connect Error";
-	}
-
-	//----------------------
 	// Send an initial buffer
 	iResult = send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()), (int)sendbuf.size(), 0);
 	if (iResult == SOCKET_ERROR) {
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return "Camera Connect Error";
+		return VCONNECT_ERR;
 	}
 
 	// Set non-blocking mode
 	u_long iMode = 1;
 	iResult = ioctlsocket(ConnectSocket, FIONBIO, &iMode);
 	if (iResult != NO_ERROR) {
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return "Camera Connect Error";
+		return VCONNECT_ERR;
 	}
-
 	bool ACKReceived = false;
 	bool CompletedReceived = false;
 	bool ErrorReceived = false;
@@ -168,10 +130,10 @@ std::string SetCamera(std::string IP, std::string hexcmd)
 			}
 			else if (ACKReceived && Completed(hexReceived)) {
 				CompletedReceived = true;
-				result = "OK";
+				result = VOK;
 				break;
 			}
-			else if (Error(hexReceived) != "") {
+			else if (Error(hexReceived) != VOK) {
 				ErrorReceived = true;
 				result = Error(hexReceived);
 				break;
@@ -181,30 +143,18 @@ std::string SetCamera(std::string IP, std::string hexcmd)
 		std::chrono::milliseconds(1000));
 
 	// Did we timeout?
-	if ((iResult <= 0) && (!ErrorReceived)) {
-		result = "Timeout";
+	if (!CompletedReceived) {
+		result = VTIMEOUT_ERR;
 	}
-
-	// close the socket
-	iResult = closesocket(ConnectSocket);
-	if (iResult == SOCKET_ERROR) {
-		WSACleanup();
-		return "Socket Close Error";
-	}
-
-	WSACleanup();
+;
 	return result;
 }
-std::string GetCamera(std::string IP, std::string hexcmd)
-{
+int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port) {
 	int iResult;
 	WSADATA wsaData;
-	std::string result = "Error";
-	SOCKET ConnectSocket = INVALID_SOCKET;
+	int result = VERR;
+	*ConnectSocket = INVALID_SOCKET;
 	struct sockaddr_in clientService = {};
-
-	int recvbuflen = DEFAULT_BUFLEN;
-	std::vector<unsigned char> sendbuf = hexStringToVector(hexcmd);
 
 	char recvbuf[DEFAULT_BUFLEN] = "";
 
@@ -212,15 +162,15 @@ std::string GetCamera(std::string IP, std::string hexcmd)
 	// Initialize Winsock
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != NO_ERROR) {
-		return "Camera Connect Error";
+		return VCONNECT_ERR;
 	}
 
 	//----------------------
 	// Create a SOCKET for connecting to server
-	ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (ConnectSocket == INVALID_SOCKET) {
+	*ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (*ConnectSocket == INVALID_SOCKET) {
 		WSACleanup();
-		return "Camera Connect Error";
+		return VCONNECT_ERR;
 	}
 
 	//----------------------
@@ -228,35 +178,60 @@ std::string GetCamera(std::string IP, std::string hexcmd)
 	// IP address, and port of the server to be connected to.
 	clientService.sin_family = AF_INET;
 	clientService.sin_addr.s_addr = inet_addr(IP.c_str());
-	clientService.sin_port = htons(DEFAULT_PORT);
+	clientService.sin_port = htons(port);
 
 	//----------------------
 	// Connect to server.
-	iResult = connect(ConnectSocket, (SOCKADDR*)&clientService,
+	iResult = connect(*ConnectSocket, (SOCKADDR*)&clientService,
 		sizeof(clientService));
 	if (iResult == SOCKET_ERROR) {
-		closesocket(ConnectSocket);
+		*ConnectSocket = INVALID_SOCKET;
+		closesocket(*ConnectSocket);
 		WSACleanup();
-		return "Camera Connect Error";
+		return VCONNECT_ERR;
 	}
+
+	// Set non-blocking mode
+	u_long iMode = 1;
+	iResult = ioctlsocket(*ConnectSocket, FIONBIO, &iMode);
+	if (iResult != NO_ERROR) {
+		closesocket(*ConnectSocket);
+		*ConnectSocket = INVALID_SOCKET;
+		WSACleanup();
+		return VCONNECT_ERR;
+	}
+	return VOK;
+}
+
+int CloseSocket(UINT_PTR ConnectSocket) {
+	int iResult;
+	// close the socket
+	iResult = closesocket(ConnectSocket);
+	if (iResult == SOCKET_ERROR) {
+		WSACleanup();
+		return VCLOSE_ERR;
+	}
+	WSACleanup();
+	return VOK;
+}
+
+int GetCamera(UINT_PTR ConnectSocket, std::string hexcmd, std::string *returnhex)
+{
+	int iResult;
+	WSADATA wsaData;
+	int result = VOK;
+	*returnhex = "";
+
+	int recvbuflen = DEFAULT_BUFLEN;
+	std::vector<unsigned char> sendbuf = hexStringToVector(hexcmd);
+	char recvbuf[DEFAULT_BUFLEN] = "";
 
 	//----------------------
 	// Send an initial buffer
 	iResult = send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()),
 		(int)sendbuf.size(), 0);
 	if (iResult == SOCKET_ERROR) {
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return "Camera Connect Error";
-	}
-
-	// Set non-blocking mode
-	u_long iMode = 1;
-	iResult = ioctlsocket(ConnectSocket, FIONBIO, &iMode);
-	if (iResult != NO_ERROR) {
-		closesocket(ConnectSocket);
-		WSACleanup();
-		return "Camera Connect Error";
+		return VCONNECT_ERR;
 	}
 
 	bool ErrorReceived = false;
@@ -270,34 +245,24 @@ std::string GetCamera(std::string IP, std::string hexcmd)
 			std::string hexReceived = vectorToHexString(
 				std::vector<unsigned char>(recvbuf,
 					recvbuf + iResult));
-			if (Error(hexReceived) != "") {
+			if (Error(hexReceived) != VOK) {
 				ErrorReceived = true;
-				result = Error(hexReceived).c_str();
+				result = Error(hexReceived);
 				break;
 			}
-			iResult = closesocket(ConnectSocket);
-			if (iResult == SOCKET_ERROR) {
-				WSACleanup();
-				return "Camera Connect Error";
-			}
-			return toUpper(hexReceived); // Happy path
+			*returnhex = toUpper(hexReceived); // Happy path
+		}
+		else {
+			int wle = WSAGetLastError();
 		}
 	} while (std::chrono::steady_clock::now() - start <
 		std::chrono::milliseconds(1000));
 
 	// Did we timeout?
-	if (iResult <= 0) {
-		result = "Timeout";
+	if ((*returnhex == "") && (!ErrorReceived)){
+		result = VTIMEOUT_ERR;
 	}
 
-	// close the socket
-	iResult = closesocket(ConnectSocket);
-	if (iResult == SOCKET_ERROR) {
-		WSACleanup();
-		return "Socket Close Error";
-	}
-
-	WSACleanup();
 	return result;
 }
 
