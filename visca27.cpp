@@ -251,6 +251,8 @@ int GetCamera(UINT_PTR ConnectSocket, std::string hexcmd, std::string *returnhex
 				break;
 			}
 			*returnhex = toUpper(hexReceived); // Happy path
+			result = VOK;
+			break;
 		}
 		else {
 			int wle = WSAGetLastError();
@@ -271,105 +273,82 @@ bool isHex(char c )
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
 		(c >= 'A' && c <= 'F');
 }
-
-ValueConverter::ValueConverter(std::string format, char field1, char field2)
-{
-	fmt = removeSpaces(format);
-	startIndex1 = -1;
-	startIndex2 = -1;
-	nDigits1 = 0;
-	nDigits2 = 0;
-	skip1 = 0;
-	skip2 = 0;
-	int lastIndex1 = -1;
-	int lastIndex2 = -1;
+ValueField::ValueField(char field, std::string fmt) {
+	startIndex = -1;
+	nDigits = 0;
+	skip = 0;
+	int lastIndex = -1;
 	for (int i = 0; i < fmt.length(); i++) {
 		if (!isHex(fmt[i])) {
-			if ((fmt[i] == field1) || (field1 == ' ')) {
-				if (startIndex1 == -1) {
-					startIndex1 = i;
+			if ((fmt[i] == field) || (field == ' ')) {
+				if (startIndex == -1) {
+					startIndex = i;
 				}
-				else if (lastIndex1 > -1) {
-					skip1 = i - lastIndex1;
+				else if (lastIndex > -1) {
+					skip = i - lastIndex;
 				}
-				nDigits1++;
+				nDigits++;
 
-				lastIndex1 = i;
+				lastIndex = i;
 			}
-			if (fmt[i] == field2) {
-				if (startIndex2 == -1) {
-					startIndex2 = i;
-				}
-				else if (lastIndex2 > -1) {
-					skip2 = i - lastIndex2;
-				}
-				nDigits2++;
-
-				lastIndex2 = i;
-			}
-		} 
+		}
 	}
+};
+
+ValueConverter::ValueConverter(std::string format, char f0, char f1, char f2)
+{
+	fmt = removeSpaces(format);
+	command = fmt;
+	nFields = 0;
+	addField(f0);
+	addField(f1);
+	addField(f2);
 }
 ValueConverter::~ValueConverter() {};
 
-int ValueConverter::getValue1(std::string returnString)
+void ValueConverter::addField(char f) {
+	if (f == ' ') return;
+	ValueField field(f, fmt);
+	fields[f] = field;
+	nFields++;
+}
+short ValueConverter::getValue(char f, std::string replyString)
 {
-	if ((nDigits1 == 0) ||
-		(nDigits1 >= 30) ||
-		(returnString.size() < startIndex1 + ((nDigits1 - 1) * skip1)))
+	auto it = fields.find(f);
+	if (it == fields.end()) return 0;
+	ValueField field = it->second;
+	if ((field.nDigits == 0) ||
+		(field.nDigits >= 30) ||
+		(replyString.size() < field.startIndex + ((field.nDigits - 1) * field.skip)))
 		return -1;
 
 	char valueHex[30] = "";
-	for (int d = 0; d < nDigits1; d++) {
-		valueHex[d] = returnString[startIndex1 + (d * skip1)];
+	for (int d = 0; d < field.nDigits; d++) {
+		valueHex[d] = replyString[field.startIndex + (d * field.skip)];
 	}
-	return std::stoi(std::string(valueHex, nDigits1), nullptr, 16);
+	return static_cast<short>(std::stoi(std::string(valueHex, field.nDigits), nullptr, 16));
 }
-int ValueConverter::getValue2(std::string returnString)
+
+void ValueConverter::setValue(char f, int val)
 {
-	if ((nDigits2 == 0) ||
-		(nDigits2 >= 30) ||
-		(returnString.size() < startIndex2 + ((nDigits2 - 1) * skip2)))
-		return -1;
-
-	char valueHex[30] = "";
-	for (int d = 0; d < nDigits2; d++) {
-		valueHex[d] = returnString[startIndex2 + (d * skip2)];
-	}
-	return std::stoi(std::string(valueHex, nDigits2), nullptr, 16);
-}
-std::string ValueConverter::setValue(int val1, int val2)
-{
-
-	if (nDigits1 == 0)
-		return fmt;
-
+	auto it = fields.find(f);
+	if (it == fields.end()) return;
+	ValueField field = it->second;
 	char setCommand[30];
 	std::stringstream ss1;
-	ss1 << std::hex << val1;
+	ss1 << std::hex << (short)val;
 	std::string valueHex = ss1.str();
 
-	for (int i = 0; i < fmt.length(); i++) {
-		setCommand[i] = fmt[i];
+	for (int i = 0; i < command.length(); i++) {
+		setCommand[i] = command[i];
 	}
 
-	for (int d = 0; d < nDigits1; d++) {
+	for (int d = 0; d < field.nDigits; d++) {
 		char fillChar = '0';
-		if (d >= nDigits1 - valueHex.length())
-			fillChar = valueHex[valueHex.length() - nDigits1 + d];
-		setCommand[startIndex1 + (d * skip1)] = fillChar;
+		if (d >= field.nDigits - valueHex.length())
+			fillChar = valueHex[valueHex.length() - field.nDigits + d];
+		setCommand[field.startIndex + (d * field.skip)] = fillChar;
 	}
 
-	if ((val2 != -1) && (nDigits2 > 0)) {
-		std::stringstream ss2;
-		ss2 << std::hex << val2;
-		valueHex = ss2.str();
-		for (int d = 0; d < nDigits2; d++) {
-			char fillChar = '0';
-			if (d >= nDigits2 - valueHex.length())
-				fillChar = valueHex[valueHex.length() - nDigits2 + d];
-			setCommand[startIndex2 + (d * skip2)] = fillChar;
-		}
-	}
-	return toUpper(std::string(setCommand, fmt.length()));
+	command = toUpper(std::string(setCommand, command.length()));
 }

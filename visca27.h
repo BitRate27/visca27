@@ -16,6 +16,7 @@
 #include <Iphlpapi.h>
 #include <Assert.h>
 #include "ViscaAPI.h"
+#include <map>
 #pragma comment(lib, "iphlpapi.lib")
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
@@ -24,20 +25,30 @@ int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port = 5678);
 int CloseSocket(UINT_PTR ConnectSocket);
 int GetCamera(UINT_PTR ConnectSocket, std::string hexcmd, std::string *returnhex);
 int SetCamera(UINT_PTR ConnectSocket, std::string hexcmd);
+
+class ValueField {
+public:
+    ValueField() {};
+    ValueField(char field, std::string fmt);
+    int nDigits;
+    int startIndex;
+    int skip;
+};
+
 class ValueConverter
 {
 public:
-    ValueConverter(std::string format, char field1 = ' ', char field2 = ' ');
+    ValueConverter(std::string format, char f0 = ' ', char f1 = ' ', char f2 = ' ');
     ~ValueConverter();
-    int getValue1(std::string returnhex);
-    int getValue2(std::string returnhex);
-    std::string setValue(int val1, int val2 = -1);
-    int nDigits1 = 0;
-    int nDigits2 = 0;
+    void addField(char f);
+    short getValue(char f, std::string replyhex);
+    void setValue(char f, int val);
+    std::string getCommand() {
+        return command;
+    };
 private:
-    int startIndex1 = -1;
-    int skip1 = 0;
-    int startIndex2 = -1;
-    int skip2 = 0;
+    std::map<char,ValueField> fields;
+    int nFields;
     std::string fmt;
+    std::string command;
 };
