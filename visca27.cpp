@@ -88,7 +88,7 @@ std::string toUpper(const std::string& str)
 int SetCamera(UINT_PTR ConnectSocket, std::string hexcmd)
 {
 	int iResult;
-	WSADATA wsaData;
+
 	int result = VERR;
 
 	int recvbuflen = DEFAULT_BUFLEN;
@@ -218,7 +218,7 @@ int CloseSocket(UINT_PTR ConnectSocket) {
 int GetCamera(UINT_PTR ConnectSocket, std::string hexcmd, std::string *returnhex)
 {
 	int iResult;
-	WSADATA wsaData;
+
 	int result = VOK;
 	*returnhex = "";
 

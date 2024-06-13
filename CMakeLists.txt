@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 project(visca27)
 
 # add the library
-add_library(visca27 STATIC visca27.cpp)
+add_library(visca27 STATIC visca27.cpp ViscaAPI.cpp)
 # include directories
 target_include_directories(visca27 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # specify the C++ standard
