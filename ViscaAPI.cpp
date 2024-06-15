@@ -63,7 +63,7 @@ visca_error_t ViscaAPI::getPanTilt(visca_tuple_t& out) {
 	return result;
 };
 
-static ValueConverter setPanTiltVC("81 01 06 02 10 10 0y 0y 0y 0y 0z 0z 0z 0z FF",'y','z');
+static ValueConverter setPanTiltVC("81 01 06 02 18 18 0y 0y 0y 0y 0z 0z 0z 0z FF",'y','z');
 visca_error_t ViscaAPI::setAbsolutePanTilt(visca_tuple_t pan_tilt) {
 	setPanTiltVC.setValue('y', pan_tilt.value1);
 	setPanTiltVC.setValue('z', pan_tilt.value2);
