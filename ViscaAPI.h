@@ -16,7 +16,7 @@ typedef struct {
 	int value2;
 } visca_tuple_t;
 typedef int visca_error_t;
-typedef unsigned __int64 visca_socket_t;
+typedef uint64_t visca_socket_t;
 
 class ViscaAPI
 {

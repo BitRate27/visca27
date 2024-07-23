@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdio>
+#include <cstdint>
 #include <stdio.h>
 #include <vector>
 #include <sstream>
@@ -8,8 +9,7 @@
 #include <iomanip>
 #include <chrono>
 #include "ViscaAPI.h"
-//#include <Iphlpapi.h>
-#include <Assert.h>
+//#include <Assert.h>
 #include <map>
 #if defined(_WIN32) || defined(_WIN64)
 #define WIN32_LEAN_AND_MEAN
@@ -29,13 +29,13 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
-typedef unsigned long long UINT_PTR;
+
 #endif
 
-int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port = 5678);
-int CloseSocket(UINT_PTR ConnectSocket);
-int GetCamera(UINT_PTR ConnectSocket, std::string hexcmd, std::string *returnhex);
-int SetCamera(UINT_PTR ConnectSocket, std::string hexcmd);
+int OpenSocket(uint64_t *ConnectSocket, std::string IP, int port = 5678);
+int CloseSocket(uint64_t ConnectSocket);
+int GetCamera(uint64_t ConnectSocket, std::string hexcmd, std::string *returnhex);
+int SetCamera(uint64_t ConnectSocket, std::string hexcmd);
 
 class ValueField {
 public:
