@@ -31,6 +31,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
+typedef unsigned long long UINT_PTR;
 #endif
 
 int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port = 5678);
