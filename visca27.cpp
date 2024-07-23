@@ -2,11 +2,11 @@
 //
 #include "visca27.h"
 // visca27.cpp :
-#define WIN32_LEAN_AND_MEAN
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+//#define WIN32_LEAN_AND_MEAN
+//#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <cstdio>
-#include <winsock2.h>
-#include <Ws2tcpip.h>
+//#include <winsock2.h>
+//#include <Ws2tcpip.h>
 #include <stdio.h>
 #include <vector>
 #include <string>
@@ -19,7 +19,7 @@
 #include <Assert.h>
 #pragma comment(lib, "iphlpapi.lib")
 // Link with ws2_32.lib
-#pragma comment(lib, "Ws2_32.lib")
+//#pragma comment(lib, "Ws2_32.lib")
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5678
@@ -151,25 +151,26 @@ int SetCamera(UINT_PTR ConnectSocket, std::string hexcmd)
 }
 int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port) {
 	int iResult;
-	WSADATA wsaData;
+	//WSADATA wsaData;
 	int result = VERR;
 	*ConnectSocket = INVALID_SOCKET;
 	struct sockaddr_in clientService = {};
 
-	char recvbuf[DEFAULT_BUFLEN] = "";
+	//char recvbuf[DEFAULT_BUFLEN] = "";
 
 	//----------------------
 	// Initialize Winsock
+	/*
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != NO_ERROR) {
 		return VCONNECT_ERR;
 	}
-
+	*/
 	//----------------------
 	// Create a SOCKET for connecting to server
 	*ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (*ConnectSocket == INVALID_SOCKET) {
-		WSACleanup();
+		//WSACleanup();
 		return VCONNECT_ERR;
 	}
 
@@ -184,10 +185,10 @@ int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port) {
 	// Connect to server.
 	iResult = connect(*ConnectSocket, (SOCKADDR*)&clientService,
 		sizeof(clientService));
-	if (iResult == SOCKET_ERROR) {
+	if (iResult == SOCKET_ERROR) { // TODO: force error and test
 		*ConnectSocket = INVALID_SOCKET;
 		closesocket(*ConnectSocket);
-		WSACleanup();
+		//WSACleanup();
 		return VCONNECT_ERR;
 	}
 
@@ -197,7 +198,7 @@ int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port) {
 	if (iResult != NO_ERROR) {
 		closesocket(*ConnectSocket);
 		*ConnectSocket = INVALID_SOCKET;
-		WSACleanup();
+		//WSACleanup();
 		return VCONNECT_ERR;
 	}
 	return VOK;
@@ -208,10 +209,10 @@ int CloseSocket(UINT_PTR ConnectSocket) {
 	// close the socket
 	iResult = closesocket(ConnectSocket);
 	if (iResult == SOCKET_ERROR) {
-		WSACleanup();
+		//WSACleanup();
 		return VCLOSE_ERR;
 	}
-	WSACleanup();
+	//WSACleanup();
 	return VOK;
 }
 
@@ -255,7 +256,7 @@ int GetCamera(UINT_PTR ConnectSocket, std::string hexcmd, std::string *returnhex
 			break;
 		}
 		else {
-			int wle = WSAGetLastError();
+			// int wle = WSAGetLastError();
 		}
 	} while (std::chrono::steady_clock::now() - start <
 		std::chrono::milliseconds(1000));
