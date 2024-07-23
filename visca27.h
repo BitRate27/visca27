@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#if defined(_WIN32) || defined(_WIN64)
 #define WIN32_LEAN_AND_MEAN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <cstdio>
@@ -20,6 +21,17 @@
 #pragma comment(lib, "iphlpapi.lib")
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
+#else 
+#include <arpa/inet.h>
+#include <errno.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <fcntl.h>
+#endif
 
 int OpenSocket(UINT_PTR *ConnectSocket, std::string IP, int port = 5678);
 int CloseSocket(UINT_PTR ConnectSocket);

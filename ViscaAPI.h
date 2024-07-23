@@ -10,7 +10,7 @@
 #define VCONNECT_ERR 6
 #define VTIMEOUT_ERR 7
 #define VCLOSE_ERR 8
-
+#define VDISCONNECT_ERR 9
 typedef struct {
 	int value1;
 	int value2;

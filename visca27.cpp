@@ -1,25 +1,6 @@
 // visca27.cpp : Defines the functions for the static library.
 //
 #include "visca27.h"
-// visca27.cpp :
-//#define WIN32_LEAN_AND_MEAN
-//#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#include <cstdio>
-//#include <winsock2.h>
-//#include <Ws2tcpip.h>
-#include <stdio.h>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <algorithm>
-#include <iomanip>
-//#include <errno.h>
-#include <chrono>
-#include <Iphlpapi.h>
-#include <Assert.h>
-#pragma comment(lib, "iphlpapi.lib")
-// Link with ws2_32.lib
-//#pragma comment(lib, "Ws2_32.lib")
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5678
