@@ -1,23 +1,21 @@
 #pragma once
 #include <string>
-#if defined(_WIN32) || defined(_WIN64)
-#define WIN32_LEAN_AND_MEAN
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <cstdio>
-#include <winsock2.h>
-#include <Ws2tcpip.h>
 #include <stdio.h>
 #include <vector>
-#include <string>
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
-//#include <errno.h>
 #include <chrono>
-#include <Iphlpapi.h>
-#include <Assert.h>
 #include "ViscaAPI.h"
+//#include <Iphlpapi.h>
+#include <Assert.h>
 #include <map>
+#if defined(_WIN32) || defined(_WIN64)
+#define WIN32_LEAN_AND_MEAN
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
+#include <Ws2tcpip.h>
 #pragma comment(lib, "iphlpapi.lib")
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
