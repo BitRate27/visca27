@@ -29,13 +29,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
-
 #endif
 
-int OpenSocket(uint64_t *ConnectSocket, std::string IP, int port = 5678);
-int CloseSocket(uint64_t ConnectSocket);
-int GetCamera(uint64_t ConnectSocket, std::string hexcmd, std::string *returnhex);
-int SetCamera(uint64_t ConnectSocket, std::string hexcmd);
+int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port = 5678);
+int CloseSocket(SOCKET ConnectSocket);
+int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex);
+int SetCamera(SOCKET ConnectSocket, std::string hexcmd);
 
 class ValueField {
 public:

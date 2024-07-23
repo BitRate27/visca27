@@ -66,7 +66,7 @@ std::string toUpper(const std::string& str)
 	}
 	return result;
 }
-int SetCamera(uint64_t ConnectSocket, std::string hexcmd)
+int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 {
 	int iResult;
 
@@ -130,7 +130,7 @@ int SetCamera(uint64_t ConnectSocket, std::string hexcmd)
 ;
 	return result;
 }
-int OpenSocket(uint64_t *ConnectSocket, std::string IP, int port) {
+int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 	int iResult;
 	//WSADATA wsaData;
 	int result = VERR;
@@ -185,7 +185,7 @@ int OpenSocket(uint64_t *ConnectSocket, std::string IP, int port) {
 	return VOK;
 }
 
-int CloseSocket(uint64_t ConnectSocket) {
+int CloseSocket(SOCKET ConnectSocket) {
 	int iResult;
 	// close the socket
 	iResult = closesocket(ConnectSocket);
@@ -197,7 +197,7 @@ int CloseSocket(uint64_t ConnectSocket) {
 	return VOK;
 }
 
-int GetCamera(uint64_t ConnectSocket, std::string hexcmd, std::string *returnhex)
+int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex)
 {
 	int iResult;
 
