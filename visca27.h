@@ -1,25 +1,21 @@
 #pragma once
-#include <string>
-#include <cstdio>
-#include <cstdint>
-#include <stdio.h>
-#include <vector>
-#include <sstream>
-#include <algorithm>
-#include <iomanip>
-#include <chrono>
-#include "ViscaAPI.h"
-//#include <Assert.h>
-#include <map>
+#ifndef UNICODE
+#define UNICODE
+#endif
 #if defined(_WIN32) || defined(_WIN64)
 #define WIN32_LEAN_AND_MEAN
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS 
 #include <winsock2.h>
 #include <Ws2tcpip.h>
-#pragma comment(lib, "iphlpapi.lib")
+#include <stdio.h>
+//#include <errno.h>
+#include <chrono>
+#include <Iphlpapi.h>
+#include <Assert.h>
+#include <map>
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
-#else 
+#else
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>
@@ -29,7 +25,15 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <map>
 #endif
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <vector>
+#include <algorithm>
+#include <functional>
 
 int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port = 5678);
 int CloseSocket(SOCKET ConnectSocket);

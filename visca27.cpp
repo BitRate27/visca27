@@ -1,6 +1,7 @@
 // visca27.cpp : Defines the functions for the static library.
 //
 #include "visca27.h"
+#include "ViscaAPI.h"
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5678
