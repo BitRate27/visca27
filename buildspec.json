@@ -1,0 +1,18 @@
+{
+    "platformConfig": {
+        "macos": {
+            "bundleId": "com.bitrate27.visca27"
+        }
+    },
+    "name": "visca27",
+    "displayName": "Visca Library",
+    "version": "1.0.0",
+    "author": "BitRate27",
+    "website": "https://github.com/BitRate27",
+    "email": "bitrate27@gmail.com",
+    "uuids": {
+        "windowsApp": "d08bc0ea-6695-480b-bad5-009374d17104",
+        "macosPackage": "251f1c5a-30b1-4e7f-8066-7c6d340cf24d",
+        "macosInstaller": "80c7a150-baae-4707-8af2-68efb106bc01"
+    }
+}
