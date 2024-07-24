@@ -49,9 +49,9 @@ class ValueField {
 public:
     ValueField() {};
     ValueField(char field, std::string fmt);
-    int nDigits;
-    int startIndex;
-    int skip;
+    size_t nDigits;
+    size_t startIndex;
+    size_t skip;
 };
 
 class ValueConverter

@@ -63,7 +63,7 @@ std::string toUpper(const std::string& str)
 {
 	std::string result = str;
 	for (auto& c : result) {
-		c = std::toupper(static_cast<unsigned char>(c));
+		c = (char)std::toupper(static_cast<unsigned char>(c));
 	}
 	return result;
 }
@@ -81,7 +81,7 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 
 	//----------------------
 	// Send an initial buffer
-	iResult = send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()), (int)sendbuf.size(), 0);
+	iResult = (int)send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()), sendbuf.size(), 0);
 	if (iResult == SOCKET_ERROR) {
 		return VCONNECT_ERR;
 	}
@@ -105,7 +105,7 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 #if defined(_WIN32) || defined(_WIN64)
 		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
 #else
-        iResult = recv(ConnectServer, recvbuf, recvbuflen, MSG_DONTWAIT);
+        iResult = (int)recv(ConnectSocket, recvbuf, (size_t)recvbuflen, MSG_DONTWAIT);
 #endif
 		if (iResult > 0) {
 			std::string hexReceived = vectorToHexString(
@@ -138,8 +138,6 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 }
 int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 	int iResult;
-	//WSADATA wsaData;
-	int result = VERR;
 	*ConnectSocket = INVALID_SOCKET;
 	struct sockaddr_in clientService = {};
 
@@ -174,7 +172,11 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 		sizeof(clientService));
 	if (iResult == SOCKET_ERROR) { // TODO: force error and test
 		*ConnectSocket = INVALID_SOCKET;
+		#if defined(_WIN32) || defined(_WIN64)
 		closesocket(*ConnectSocket);
+		#else
+		close(*ConnectSocket);
+		#endif
 		//WSACleanup();
 		return VCONNECT_ERR;
 	}
@@ -195,7 +197,11 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 int CloseSocket(SOCKET ConnectSocket) {
 	int iResult;
 	// close the socket
+	#if defined(_WIN32) || defined(_WIN64)
 	iResult = closesocket(ConnectSocket);
+	#else
+	iResult = close(ConnectSocket);
+	#endif
 	if (iResult == SOCKET_ERROR) {
 		//WSACleanup();
 		return VCLOSE_ERR;
@@ -217,8 +223,8 @@ int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex)
 
 	//----------------------
 	// Send an initial buffer
-	iResult = send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()),
-		(int)sendbuf.size(), 0);
+	iResult = (int)send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()),
+		sendbuf.size(), 0);
 	if (iResult == SOCKET_ERROR) {
 		return VCONNECT_ERR;
 	}
@@ -232,7 +238,7 @@ int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex)
 #if defined(_WIN32) || defined(_WIN64)
 		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
 #else
-        iResult = recv(ConnectServer, recvbuf, recvbuflen, MSG_DONTWAIT);
+        iResult = (int)recv(ConnectSocket, recvbuf, (size_t)recvbuflen, MSG_DONTWAIT);
 #endif
 		if (iResult > 0) {
 			std::string hexReceived = vectorToHexString(
@@ -267,17 +273,17 @@ bool isHex(char c )
 		(c >= 'A' && c <= 'F');
 }
 ValueField::ValueField(char field, std::string fmt) {
-	startIndex = -1;
+	startIndex = (size_t)-1;
 	nDigits = 0;
 	skip = 0;
-	int lastIndex = -1;
-	for (int i = 0; i < fmt.length(); i++) {
+	size_t lastIndex = (size_t)-1;
+	for (size_t i = 0; i < fmt.length(); i++) {
 		if (!isHex(fmt[i])) {
 			if ((fmt[i] == field) || (field == ' ')) {
-				if (startIndex == -1) {
+				if (startIndex == (size_t)-1) {
 					startIndex = i;
 				}
-				else if (lastIndex > -1) {
+				else if (lastIndex > (size_t)-1) {
 					skip = i - lastIndex;
 				}
 				nDigits++;
@@ -316,7 +322,7 @@ short ValueConverter::getValue(char f, std::string replyString)
 		return -1;
 
 	char valueHex[30] = "";
-	for (int d = 0; d < field.nDigits; d++) {
+	for (size_t d = 0; d < field.nDigits; d++) {
 		valueHex[d] = replyString[field.startIndex + (d * field.skip)];
 	}
 	return static_cast<short>(std::stoi(std::string(valueHex, field.nDigits), nullptr, 16));
@@ -332,11 +338,11 @@ void ValueConverter::setValue(char f, int val)
 	ss1 << std::hex << (short)val;
 	std::string valueHex = ss1.str();
 
-	for (int i = 0; i < command.length(); i++) {
+	for (size_t i = 0; i < command.length(); i++) {
 		setCommand[i] = command[i];
 	}
 
-	for (int d = 0; d < field.nDigits; d++) {
+	for (size_t d = 0; d < field.nDigits; d++) {
 		char fillChar = '0';
 		if (d >= field.nDigits - valueHex.length())
 			fillChar = valueHex[valueHex.length() - field.nDigits + d];

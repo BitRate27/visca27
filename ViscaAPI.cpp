@@ -1,5 +1,5 @@
-#include "ViscaAPI.h"
 #include "visca27.h"
+#include "ViscaAPI.h"
 #include <iostream>
 
 ViscaAPI::ViscaAPI() {
@@ -9,12 +9,12 @@ ViscaAPI::ViscaAPI() {
 };
 ViscaAPI::~ViscaAPI() {
 	if (_connectSocket != INVALID_SOCKET) {
-		int result = CloseSocket(_connectSocket);
+		CloseSocket(_connectSocket);
 	}
 };
 visca_error_t ViscaAPI::isConnected() {
 	char buffer[1];
-	int result = recv(_connectSocket, buffer, sizeof(buffer), MSG_PEEK);
+	ssize_t result = recv(_connectSocket, buffer, sizeof(buffer), MSG_PEEK);
 	if (result == 0) {
 
 		// The recv function returns zero if the connection has been gracefully closed.
@@ -41,7 +41,7 @@ visca_error_t ViscaAPI::connectCamera(std::string url, int port) {
 }
 visca_error_t ViscaAPI::disconnectCamera() {
 	if (_connectSocket != INVALID_SOCKET) {
-		int result = CloseSocket(_connectSocket);
+		CloseSocket(_connectSocket);
 	}
 	_url = "";
 	_port = -1;
