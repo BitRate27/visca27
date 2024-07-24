@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <map>
+typedef int SOCKET;
 #endif
 #include <string>
 #include <iostream>
