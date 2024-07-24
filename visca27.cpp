@@ -86,12 +86,14 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 		return VCONNECT_ERR;
 	}
 
+#if defined(_WIN32) || defined(_WIN64)
 	// Set non-blocking mode
 	u_long iMode = 1;
 	iResult = ioctlsocket(ConnectSocket, FIONBIO, &iMode);
 	if (iResult != NO_ERROR) {
 		return VCONNECT_ERR;
 	}
+#endif
 	bool ACKReceived = false;
 	bool CompletedReceived = false;
 	bool ErrorReceived = false;
@@ -100,8 +102,11 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 
 	// Receive until the peer closes the connection
 	do {
-
+#if defined(_WIN32) || defined(_WIN64)
 		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+#else
+        iResult = recv(ConnectServer, recvbuf, recvbuflen, MSG_DONTWAIT);
+#endif
 		if (iResult > 0) {
 			std::string hexReceived = vectorToHexString(
 				std::vector<unsigned char>(recvbuf,
@@ -173,7 +178,7 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 		//WSACleanup();
 		return VCONNECT_ERR;
 	}
-
+#if defined(_WIN32) || defined(_WIN64)
 	// Set non-blocking mode
 	u_long iMode = 1;
 	iResult = ioctlsocket(*ConnectSocket, FIONBIO, &iMode);
@@ -183,6 +188,7 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 		//WSACleanup();
 		return VCONNECT_ERR;
 	}
+#endif
 	return VOK;
 }
 
@@ -223,7 +229,11 @@ int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex)
 
 	// Receive until the peer closes the connection
 	do {
+#if defined(_WIN32) || defined(_WIN64)
 		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+#else
+        iResult = recv(ConnectServer, recvbuf, recvbuflen, MSG_DONTWAIT);
+#endif
 		if (iResult > 0) {
 			std::string hexReceived = vectorToHexString(
 				std::vector<unsigned char>(recvbuf,

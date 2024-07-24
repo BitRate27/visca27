@@ -27,6 +27,10 @@
 #include <fcntl.h>
 #include <map>
 typedef int SOCKET;
+#define SOCKET_ERROR (-1)
+#define INVALID_SOCKET (SOCKET)(~0)
+typedef struct sockaddr SOCKADDR;
+#define NO_ERROR 0L
 #endif
 #include <string>
 #include <iostream>
