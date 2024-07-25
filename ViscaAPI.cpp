@@ -32,7 +32,7 @@ visca_error_t ViscaAPI::isConnected() {
 		return VOK;
 	}
 }
-visca_error_t ViscaAPI::connectCamera(std::string url, int port) {
+visca_error_t ViscaAPI::connectCamera(std::string url, u_short port) {
 	_url = url;
 	_port = port;
 	int result = OpenSocket(&_connectSocket, _url, _port);

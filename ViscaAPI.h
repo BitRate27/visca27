@@ -24,7 +24,7 @@ class ViscaAPI
 public:
 	ViscaAPI();
 	~ViscaAPI();
-	visca_error_t connectCamera(std::string url, int port);
+	visca_error_t connectCamera(std::string url, u_short port);
 	visca_error_t isConnected();
 	visca_error_t getPanTilt(visca_tuple_t& out);
 	visca_error_t setAbsolutePanTilt(visca_tuple_t pan_tilt);
