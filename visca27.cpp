@@ -2,6 +2,7 @@
 //
 #include "visca27.h"
 #include "ViscaAPI.h"
+#include <iostream>
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5678
@@ -313,6 +314,7 @@ void ValueConverter::addField(char f) {
 }
 short ValueConverter::getValue(char f, std::string replyString)
 {
+	std::cout << "reply=" << replyString << std::endl;
 	auto it = fields.find(f);
 	if (it == fields.end()) return 0;
 	ValueField field = it->second;
@@ -320,11 +322,12 @@ short ValueConverter::getValue(char f, std::string replyString)
 		(field.nDigits >= 30) ||
 		(replyString.size() < field.startIndex + ((field.nDigits - 1) * field.skip)))
 		return -1;
-
+	std::cout << "skip=" << field.skip << std::endl;
 	char valueHex[30] = "";
 	for (size_t d = 0; d < field.nDigits; d++) {
 		valueHex[d] = replyString[field.startIndex + (d * field.skip)];
 	}
+	std::cout << "valueHex=" << valueHex << std::endl;
 	return static_cast<short>(std::stoi(std::string(valueHex, field.nDigits), nullptr, 16));
 }
 
