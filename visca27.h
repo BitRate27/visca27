@@ -34,6 +34,7 @@ typedef struct sockaddr SOCKADDR;
 #define NO_ERROR 0L
 #endif
 #include <string>
+#include <cstddef>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
