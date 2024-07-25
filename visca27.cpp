@@ -82,7 +82,13 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 
 	//----------------------
 	// Send an initial buffer
-	iResult = (int)send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()), sendbuf.size(), 0);
+#if defined(_WIN32) || defined(_WIN64)
+	iResult = (int)send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()), (int)sendbuf.size(), 0);
+#else
+	iResult = (int)send(ConnectSocket,
+			    reinterpret_cast<char *>(sendbuf.data()),
+			    sendbuf.size(), 0);
+#endif
 	if (iResult == SOCKET_ERROR) {
 		return VCONNECT_ERR;
 	}
@@ -224,8 +230,14 @@ int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex)
 
 	//----------------------
 	// Send an initial buffer
+#if defined(_WIN32) || defined(_WIN64)
 	iResult = (int)send(ConnectSocket, reinterpret_cast<char*>(sendbuf.data()),
-		sendbuf.size(), 0);
+		(int)sendbuf.size(), 0);
+#else
+	iResult = (int)send(ConnectSocket,
+			    reinterpret_cast<char *>(sendbuf.data()),
+			    sendbuf.size(), 0);
+#endif
 	if (iResult == SOCKET_ERROR) {
 		return VCONNECT_ERR;
 	}

@@ -13,6 +13,7 @@
 #include <Iphlpapi.h>
 #include <Assert.h>
 #include <map>
+typedef int ssize_t;
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
 #else
