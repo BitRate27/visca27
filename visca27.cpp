@@ -143,7 +143,7 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 ;
 	return result;
 }
-int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
+int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	int iResult;
 	*ConnectSocket = INVALID_SOCKET;
 	struct sockaddr_in clientService = {};

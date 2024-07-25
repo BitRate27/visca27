@@ -8,8 +8,6 @@
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <stdio.h>
-//#include <errno.h>
-#include <chrono>
 #include <Iphlpapi.h>
 #include <Assert.h>
 #include <map>
@@ -35,6 +33,7 @@ typedef struct sockaddr SOCKADDR;
 #endif
 #include <string>
 #include <cstddef>
+#include <chrono>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -42,7 +41,7 @@ typedef struct sockaddr SOCKADDR;
 #include <algorithm>
 #include <functional>
 
-int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port = 5678);
+int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port = 5678);
 int CloseSocket(SOCKET ConnectSocket);
 int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex);
 int SetCamera(SOCKET ConnectSocket, std::string hexcmd);
