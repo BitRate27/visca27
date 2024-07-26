@@ -37,7 +37,7 @@ public:
 	visca_error_t disconnectCamera();
 private:
 	std::string _url;
-	int _port;
+	u_short _port;
 	visca_socket_t _connectSocket;
 };
 
