@@ -3,8 +3,8 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/common/bootstrap.cmake" NO_POLICY_SCO
 # set the project name
 project(visca27)
 include(compilerconfig)
-#include(defaults)
-#include(helpers)
+include(defaults)
+include(helpers)
 # add the librarys
 add_library(visca27 STATIC visca27.cpp ViscaAPI.cpp)
 # include directories

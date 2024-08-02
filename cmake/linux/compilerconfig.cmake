@@ -13,7 +13,6 @@ set(_obs_gcc_c_options
     # cmake-format: sortable
     -fno-strict-aliasing
     -fopenmp-simd
-    -fPIC
     -Wdeprecated-declarations
     -Wempty-body
     -Wenum-conversion
@@ -44,7 +43,7 @@ set(_obs_gcc_c_options
 # gcc options for C++
 set(_obs_gcc_cxx_options
     # cmake-format: sortable
-    ${_obs_gcc_c_options} -fPIC -Wconversion -Wfloat-conversion -Winvalid-offsetof -Wno-overloaded-virtual)
+    ${_obs_gcc_c_options} -Wconversion -Wfloat-conversion -Winvalid-offsetof -Wno-overloaded-virtual)
 
 add_compile_options(
   -fopenmp-simd
