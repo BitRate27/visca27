@@ -13,6 +13,9 @@ ViscaAPI::~ViscaAPI() {
 	}
 };
 visca_error_t ViscaAPI::isConnected() {
+	if (_connectSocket == INVALID_SOCKET) {
+		return VERR;
+	}
 	char buffer[1];
 	ssize_t result = recv(_connectSocket, buffer, sizeof(buffer), MSG_PEEK);
 	if (result == 0) {
