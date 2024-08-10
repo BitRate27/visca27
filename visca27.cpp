@@ -140,7 +140,6 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 	if (!CompletedReceived) {
 		result = VTIMEOUT_ERR;
 	}
-;
 	return result;
 }
 int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
@@ -165,6 +164,21 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 		//WSACleanup();
 		return VCONNECT_ERR;
 	}
+#if (defined(_WIN32) || defined(_WIN64))
+		// Set non-blocking mode
+		u_long iMode = 1;
+		iResult = ioctlsocket(*ConnectSocket, FIONBIO, &iMode);
+		if (iResult != NO_ERROR) {
+			closesocket(*ConnectSocket);
+			*ConnectSocket = INVALID_SOCKET;
+			//WSACleanup();
+			return VCONNECT_ERR;
+		}	
+#else
+		// Set non-blocking mode
+		int flags = fcntl(*ConnectSocket, F_GETFL, 0);
+		fcntl(*ConnectSocket, F_SETFL, flags | O_NONBLOCK);
+#endif
 
 	//----------------------
 	// The sockaddr_in structure specifies the address family,
@@ -187,17 +201,7 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 		//WSACleanup();
 		return VCONNECT_ERR;
 	}
-#if defined(_WIN32) || defined(_WIN64)
-	// Set non-blocking mode
-	u_long iMode = 1;
-	iResult = ioctlsocket(*ConnectSocket, FIONBIO, &iMode);
-	if (iResult != NO_ERROR) {
-		closesocket(*ConnectSocket);
-		*ConnectSocket = INVALID_SOCKET;
-		//WSACleanup();
-		return VCONNECT_ERR;
-	}
-#endif
+
 	return VOK;
 }
 

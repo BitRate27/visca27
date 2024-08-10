@@ -58,7 +58,8 @@ static ValueConverter getPanTiltVC("90 50 0w 0w 0w 0w 0z 0z 0z 0z FF", 'w', 'z')
 visca_error_t ViscaAPI::getPanTilt(visca_tuple_t& out) {
 	std::string returnhex;
 	int result = GetCamera(_connectSocket, "81 09 06 12 FF", &returnhex);
-	out = { 0,0 };
+	out.value1 = 0;
+	out.value2 = 0;
 	if (result == VOK) {
 		out.value1 = getPanTiltVC.getValue('w',returnhex);
 		out.value2 = getPanTiltVC.getValue('z',returnhex);
