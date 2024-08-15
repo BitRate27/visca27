@@ -6,7 +6,7 @@ int main() {
     visca_error_t result;
 
     // Attempt to connect to the camera
-    result = cameraControl.connectCamera("192.168.1.233", 5678);
+    result = cameraControl.connectCamera("127.0.0.1", 5678);
     if (result != VOK) {
         std::cerr << "Failed to connect to camera. Error code: " << result << std::endl;
         return 1; // Exit with an error code
