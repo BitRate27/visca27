@@ -13,6 +13,7 @@
 !buildspec.json
 !CMakeLists.txt
 !CMakePresets.json
+!Makefile
 !visca-mock-server.py
 !LICENSE
 !README.md
