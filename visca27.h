@@ -60,6 +60,7 @@ class ValueConverter
 public:
     ValueConverter(std::string format, char f0 = ' ', char f1 = ' ', char f2 = ' ');
     ~ValueConverter();
+    void init();
     void addField(char f);
     short getValue(char f, std::string replyhex);
     void setValue(char f, int val);

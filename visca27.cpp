@@ -3,6 +3,8 @@
 #include "visca27.h"
 #include "ViscaAPI.h"
 #include <iostream>
+#include <stdio.h>
+#include <errno.h>
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT 5678
@@ -118,6 +120,7 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 			std::string hexReceived = vectorToHexString(
 				std::vector<unsigned char>(recvbuf,
 					recvbuf + iResult));
+
 			if (ACK(hexReceived)) {
 				ACKReceived = true;
 				start = std::chrono::steady_clock::now();
@@ -190,19 +193,57 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	//----------------------
 	// Connect to server.
 	iResult = connect(*ConnectSocket, (SOCKADDR*)&clientService,
-		sizeof(clientService));
-	if (iResult == SOCKET_ERROR) { // TODO: force error and test
-		*ConnectSocket = INVALID_SOCKET;
-		#if defined(_WIN32) || defined(_WIN64)
-		closesocket(*ConnectSocket);
-		#else
-		close(*ConnectSocket);
-		#endif
-		//WSACleanup();
+			sizeof(clientService));
+	if (iResult == 0) {
+            return VOK;
+    } else if (iResult < 0 && errno == EINPROGRESS) {
+		// Wait for the connection to complete
+		auto start = std::chrono::steady_clock::now();
+		fd_set writefds;
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 100000; // 100 milliseconds
+
+		do { 
+ 			FD_ZERO(&writefds);
+            FD_SET(*ConnectSocket, &writefds);
+
+            iResult = select(*ConnectSocket + 1, NULL, &writefds, NULL, &tv);
+            if (iResult > 0) {
+                if (FD_ISSET(*ConnectSocket, &writefds)) {
+                    int so_error;
+                    socklen_t len = sizeof(so_error);
+                    getsockopt(*ConnectSocket, SOL_SOCKET, SO_ERROR, &so_error, &len);
+                    if (so_error == 0) {
+                        return VOK;
+                    } else {
+                        errno = so_error;
+                        perror("connect");
+                        return VCONNECT_ERR;
+                    }
+                }
+            } else if (iResult == 0) {
+                // Timeout occurred
+                return VCONNECT_ERR;
+            } else {
+                // select error
+                perror("select");
+                return VCONNECT_ERR;
+            }
+		} while (std::chrono::steady_clock::now() - start <
+			std::chrono::milliseconds(1000));
+            // You can use select() or poll() to wait for the connection to complete
+	} else {
 		return VCONNECT_ERR;
 	}
-
-	return VOK;
+	
+	#if defined(_WIN32) || defined(_WIN64)
+	closesocket(*ConnectSocket);
+	#else
+	close(*ConnectSocket);
+	#endif
+	*ConnectSocket = INVALID_SOCKET;
+	return VCONNECT_ERR;
 }
 
 int CloseSocket(SOCKET ConnectSocket) {
@@ -290,17 +331,17 @@ bool isHex(char c )
 		(c >= 'A' && c <= 'F');
 }
 ValueField::ValueField(char field, std::string fmt) {
-	startIndex = (size_t)-1;
+	startIndex = 0;
 	nDigits = 0;
 	skip = 0;
-	size_t lastIndex = (size_t)-1;
+	size_t lastIndex = 0;
 	for (size_t i = 0; i < fmt.length(); i++) {
 		if (!isHex(fmt[i])) {
 			if ((fmt[i] == field) || (field == ' ')) {
-				if (startIndex == (size_t)-1) {
+				if (startIndex == 0) {
 					startIndex = i;
 				}
-				else if (lastIndex > (size_t)-1) {
+				else if (lastIndex > 0) {
 					skip = i - lastIndex;
 				}
 				nDigits++;
@@ -330,7 +371,6 @@ void ValueConverter::addField(char f) {
 }
 short ValueConverter::getValue(char f, std::string replyString)
 {
-	std::cout << "reply=" << replyString << std::endl;
 	auto it = fields.find(f);
 	if (it == fields.end()) return 0;
 	ValueField field = it->second;
@@ -338,15 +378,16 @@ short ValueConverter::getValue(char f, std::string replyString)
 		(field.nDigits >= 30) ||
 		(replyString.size() < field.startIndex + ((field.nDigits - 1) * field.skip)))
 		return -1;
-	std::cout << "skip=" << field.skip << std::endl;
 	char valueHex[30] = "";
 	for (size_t d = 0; d < field.nDigits; d++) {
 		valueHex[d] = replyString[field.startIndex + (d * field.skip)];
 	}
-	std::cout << "valueHex=" << valueHex << std::endl;
 	return static_cast<short>(std::stoi(std::string(valueHex, field.nDigits), nullptr, 16));
 }
-
+void ValueConverter::init()
+{
+	command = fmt;
+}
 void ValueConverter::setValue(char f, int val)
 {
 	auto it = fields.find(f);
@@ -357,16 +398,10 @@ void ValueConverter::setValue(char f, int val)
 	ss1 << std::hex << (short)val;
 	std::string valueHex = ss1.str();
 
-	for (size_t i = 0; i < command.length(); i++) {
-		setCommand[i] = command[i];
-	}
-
 	for (size_t d = 0; d < field.nDigits; d++) {
 		char fillChar = '0';
 		if (d >= field.nDigits - valueHex.length())
 			fillChar = valueHex[valueHex.length() - field.nDigits + d];
-		setCommand[field.startIndex + (d * field.skip)] = fillChar;
+		command[field.startIndex + (d * field.skip)] = fillChar;
 	}
-
-	command = toUpper(std::string(setCommand, command.length()));
 }

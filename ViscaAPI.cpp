@@ -39,7 +39,6 @@ visca_error_t ViscaAPI::connectCamera(std::string url, u_short port) {
 	_url = url;
 	_port = port;
 	int result = OpenSocket(&_connectSocket, _url, _port);
-	std::cout << "error=" << result << std::endl;
 	return result;
 }
 visca_error_t ViscaAPI::disconnectCamera() {
@@ -87,6 +86,7 @@ visca_error_t ViscaAPI::getZoomLevel(short& out) {
 
 static ValueConverter setZoomVC("81 01 04 47 0p 0p 0p 0p FF", 'p');
 visca_error_t ViscaAPI::setZoomLevel(short level) {
+	setZoomVC.init();
 	setZoomVC.setValue('p', level);
 	int result = SetCamera(_connectSocket, setZoomVC.getCommand());
 	return result;

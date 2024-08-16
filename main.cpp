@@ -1,19 +1,36 @@
 #include "ViscaAPI.h"
 #include <iostream>
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <IP_ADDRESS> <PORT>" << std::endl;
+        return 1; // Exit with an error code
+    }
+
+    const char* ipAddress = argv[1];
+    int port = std::atoi(argv[2]);
+
     ViscaAPI cameraControl;
     visca_error_t result;
 
     // Attempt to connect to the camera
-    result = cameraControl.connectCamera("127.0.0.1", 5678);
+    result = cameraControl.connectCamera(ipAddress, port);
+ 
     if (result != VOK) {
         std::cerr << "Failed to connect to camera. Error code: " << result << std::endl;
         return 1; // Exit with an error code
     }
 
     // Connected successfully, now get the zoom level
-    short zoomLevel = 0;
+
+    short zoomLevel = 20;
+    
+    result = cameraControl.setZoomLevel(zoomLevel);
+    if (result != VOK) {
+        std::cerr << "Failed to set zoom level. Error code: " << result << std::endl;
+        return 1; // Exit with an error code
+    }
+
     result = cameraControl.getZoomLevel(zoomLevel);
     if (result != VOK) {
         std::cerr << "Failed to get zoom level. Error code: " << result << std::endl;

@@ -3,89 +3,95 @@ import threading
 import time
 
 class ViscaMockServer:
-    def __init__(self, host='localhost', port=5678):
+    def __init__(self, host='127.0.0.1', port=5678):
         self.host = host
         self.port = port
-        self.server_socket = None
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind((self.host, self.port))
         self.running = False
         self.clients = []
-        self.pan_tilt = [0, 0]
-        self.zoom_level = 0
+        
+        # Camera state
+        self.pan_tilt = [0x8000, 0x8000]  # Mid position
+        self.zoom_level = 0x0000  # Wide end
         self.horizontal_flip = False
         self.vertical_flip = False
 
     def start(self):
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server_socket.bind((self.host, self.port))
-        self.server_socket.listen(5)
         self.running = True
-        print(f"Server started on {self.host}:{self.port}")
-
+        self.socket.listen(5)
+        print(f"Server listening on {self.host}:{self.port}")
+        
         while self.running:
-            try:
-                client_socket, addr = self.server_socket.accept()
-                print(f"New connection from {addr}")
-                client_thread = threading.Thread(target=self.handle_client, args=(client_socket,))
-                client_thread.start()
-                self.clients.append(client_thread)
-            except Exception as e:
-                print(f"Error accepting connection: {e}")
+            client, address = self.socket.accept()
+            print(f"New connection from {address}")
+            self.clients.append(client)
+            client_thread = threading.Thread(target=self.handle_client, args=(client,))
+            client_thread.start()
 
     def stop(self):
         self.running = False
         for client in self.clients:
-            client.join()
-        if self.server_socket:
-            self.server_socket.close()
+            client.close()
+        self.socket.close()
 
-    def handle_client(self, client_socket):
+    def handle_client(self, client):
         while self.running:
             try:
-                data = client_socket.recv(1024)
+                data = client.recv(1024)
                 if not data:
                     break
-                command = data.hex().upper()
-                response = self.process_command(command)
-                client_socket.sendall(bytes.fromhex(response))
+                responses = self.process_command(data)
+                for response in responses:
+                    print(f"Sending response: {response.hex()}")
+                    client.send(response)
             except Exception as e:
                 print(f"Error handling client: {e}")
                 break
-        client_socket.close()
-
-    def process_command(self, command):
-        print(f"Received command: {command}")
-        if command.startswith('8109'):  # Inquiry commands
-            if command == '81090612FF':  # Get Pan/Tilt
-                return f'9050{self.pan_tilt[0]:04X}{self.pan_tilt[1]:04X}FF'
-            elif command == '81090447FF':  # Get Zoom
-                return f'90500{self.zoom_level:03X}FF'
-            elif command == '81090461FF':  # Get Horizontal Flip
-                return f'905002FF' if self.horizontal_flip else f'905003FF'
-            elif command == '81090466FF':  # Get Vertical Flip
-                return f'905002FF' if self.vertical_flip else f'905003FF'
-        elif command.startswith('8101'):  # Set commands
-            if command.startswith('81010602'):  # Set Pan/Tilt
-                self.pan_tilt = [int(command[12:16], 16), int(command[16:20], 16)]
-                return '904101FF'
-            elif command.startswith('81010447'):  # Set Zoom
-                self.zoom_level = int(command[8:12], 16)
-                return '904101FF'
-            elif command.startswith('81010461'):  # Set Horizontal Flip
-                self.horizontal_flip = (command[8:10] == '02')
-                return '904101FF'
-            elif command.startswith('81010466'):  # Set Vertical Flip
-                self.vertical_flip = (command[8:10] == '02')
-                return '904101FF'
         
-        # Unknown command
-        return '904100FF'
+        self.clients.remove(client)
+        client.close()
 
+    def process_command(self, data):
+        hex_data = data.hex()
+        print(f"Received command: {hex_data}")
+        
+        responses = []
+        if hex_data.startswith('81090612'):  # Get pan/tilt
+            responses.append(bytes.fromhex(f'9050{self.pan_tilt[0]}{self.pan_tilt[1]}ff'))
+        elif hex_data.startswith('8101060218'):  # Set pan/tilt
+            self.pan_tilt[0] = hex_data[12:20]
+            self.pan_tilt[1] = hex_data[20:28]
+            responses.append(bytes.fromhex('9040ff'))  # ACK
+            responses.append(bytes.fromhex('9050ff'))  # Completion
+        elif hex_data.startswith('81090447'):  # Get zoom
+            responses.append(bytes.fromhex(f'9050{self.zoom_level}ff'))
+        elif hex_data.startswith('81010447'):  # Set zoom
+            self.zoom_level = hex_data[8:16]
+            responses.append(bytes.fromhex('9040ff'))  # ACK
+            responses.append(bytes.fromhex('9050ff'))  # Completion
+        elif hex_data.startswith('81090461'):  # Get horizontal flip
+            responses.append(bytes.fromhex('905002ff' if self.horizontal_flip else '905003ff'))
+        elif hex_data.startswith('81010461'):  # Set horizontal flip
+            self.horizontal_flip = (hex_data[8:10] == '02')
+            responses.append(bytes.fromhex('9040ff'))  # ACK
+            responses.append(bytes.fromhex('9050ff'))  # Completion
+        elif hex_data.startswith('81090466'):  # Get vertical flip
+            responses.append(bytes.fromhex('905002ff' if self.vertical_flip else '905003ff'))
+        elif hex_data.startswith('81010466'):  # Set vertical flip
+            self.vertical_flip = (hex_data[8:10] == '02')
+            responses.append(bytes.fromhex('9040ff'))  # ACK
+            responses.append(bytes.fromhex('9050ff'))  # Completion
+        else:
+            responses.append(bytes.fromhex('9060ff'))  # Error response
+        
+        return responses
+    
 if __name__ == "__main__":
     server = ViscaMockServer()
     try:
         server.start()
     except KeyboardInterrupt:
-        print("Server stopping...")
-    finally:
+        print("Shutting down server...")
         server.stop()
