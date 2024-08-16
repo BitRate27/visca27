@@ -393,7 +393,6 @@ void ValueConverter::setValue(char f, int val)
 	auto it = fields.find(f);
 	if (it == fields.end()) return;
 	ValueField field = it->second;
-	char setCommand[30] = {};
 	std::stringstream ss1;
 	ss1 << std::hex << (short)val;
 	std::string valueHex = ss1.str();
