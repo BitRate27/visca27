@@ -208,12 +208,16 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
  			FD_ZERO(&writefds);
             FD_SET(*ConnectSocket, &writefds);
 
-            iResult = select(*ConnectSocket + 1, NULL, &writefds, NULL, &tv);
+            iResult = select((int)*ConnectSocket + 1, NULL, &writefds, NULL, &tv);
             if (iResult > 0) {
                 if (FD_ISSET(*ConnectSocket, &writefds)) {
                     int so_error;
                     socklen_t len = sizeof(so_error);
-                    getsockopt(*ConnectSocket, SOL_SOCKET, SO_ERROR, &so_error, &len);
+#if defined(_WIN32) || defined(_WIN64)
+                    getsockopt(*ConnectSocket, SOL_SOCKET, SO_ERROR, (char *)&so_error, &len);
+#else
+					getsockopt(*ConnectSocket, SOL_SOCKET, SO_ERROR, &so_error, &len);
+#endif
                     if (so_error == 0) {
                         return VOK;
                     } else {
