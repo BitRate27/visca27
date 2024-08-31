@@ -147,8 +147,17 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 }
 int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	int iResult;
+	WSADATA wsaData;
 	*ConnectSocket = INVALID_SOCKET;
-	struct sockaddr_in clientService = {};
+	struct sockaddr_in clientService;
+
+	// Initialize Winsock
+	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (iResult != 0) {
+		return VCONNECT_ERR;
+	}
+
+	//struct sockaddr_in clientService = {};
 
 	//char recvbuf[DEFAULT_BUFLEN] = "";
 
@@ -164,9 +173,10 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	// Create a SOCKET for connecting to server
 	*ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (*ConnectSocket == INVALID_SOCKET) {
-		//WSACleanup();
+		WSACleanup();
 		return VCONNECT_ERR;
 	}
+
 #if (defined(_WIN32) || defined(_WIN64))
 		// Set non-blocking mode
 		u_long iMode = 1;
@@ -196,7 +206,11 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 			sizeof(clientService));
 	if (iResult == 0) {
             return VOK;
-    } else if (iResult < 0 && errno == EINPROGRESS) {
+#if defined(_WIN32) || defined(_WIN64)
+    } else if ((iResult < 0) && (WSAGetLastError() == WSAEWOULDBLOCK)) {
+#else
+    } else if ((iResult < 0) && (errno == EINPROGRESS)) {
+#endif
 		// Wait for the connection to complete
 		auto start = std::chrono::steady_clock::now();
 		fd_set writefds;
