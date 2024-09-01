@@ -147,33 +147,22 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 }
 int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	int iResult;
-	WSADATA wsaData;
 	*ConnectSocket = INVALID_SOCKET;
 	struct sockaddr_in clientService;
 
+#if (defined(_WIN32) || defined(_WIN64))
 	// Initialize Winsock
+	WSADATA wsaData;
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0) {
 		return VCONNECT_ERR;
 	}
+#endif
 
-	//struct sockaddr_in clientService = {};
-
-	//char recvbuf[DEFAULT_BUFLEN] = "";
-
-	//----------------------
-	// Initialize Winsock
-	/*
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != NO_ERROR) {
-		return VCONNECT_ERR;
-	}
-	*/
 	//----------------------
 	// Create a SOCKET for connecting to server
 	*ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (*ConnectSocket == INVALID_SOCKET) {
-		WSACleanup();
 		return VCONNECT_ERR;
 	}
 
