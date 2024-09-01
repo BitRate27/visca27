@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
     }
 
     const char* ipAddress = argv[1];
-    int port = std::atoi(argv[2]);
+    u_short port = (u_short)std::atoi(argv[2]);
 
     ViscaAPI cameraControl;
     visca_error_t result;
