@@ -20,6 +20,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # add the executable
-add_executable(main_executable main.cpp)
+add_executable(testvisca main.cpp)
 # link the executable with the visca27 library
-target_link_libraries(main_executable PRIVATE visca27)
+target_link_libraries(testvisca PRIVATE visca27)
