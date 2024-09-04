@@ -2,9 +2,22 @@ import socket
 import threading
 import time
 
+def get_ip_address():
+    # Create a temporary socket to get the IP address
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Connect to an external IP address (Google's DNS server)
+        s.connect(('8.8.8.8', 80))
+        ip_address = s.getsockname()[0]
+    except Exception:
+        ip_address = '127.0.0.1'  # Fallback to localhost
+    finally:
+        s.close()
+    return ip_address
+
 class ViscaMockServer:
-    def __init__(self, host='127.0.0.1', port=5678):
-        self.host = host
+    def __init__(self, host=None, port=5678):
+        self.host = host if host else get_ip_address()
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
