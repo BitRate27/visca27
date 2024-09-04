@@ -14,6 +14,9 @@
 #define VDISCONNECT_ERR 9
 #define VIP_ERR 10
 #define VCLOSED 11
+#define VSELECT_ERR 12
+#define VSOCKET_ERR 13
+#define VPORT_ERR 14
 
 typedef struct {
 	int value1;

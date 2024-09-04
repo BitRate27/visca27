@@ -153,14 +153,14 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	// Check if the IP address is active using ping
     std::string pingCommand;
 #if (defined(_WIN32) || defined(_WIN64))
-    pingCommand = "ping -n 1 " + IP;
+    pingCommand = "ping -n 1 " + IP + " > NUL 2>&1";
 #else
-    pingCommand = "ping -c 1 " + IP;
+    pingCommand = "ping -c 1 " + IP + " > /dev/null 2>&1";
 #endif
 
     int pingResult = system(pingCommand.c_str());
     if (pingResult != 0) {
-        std::cerr << "Ping to " << IP << " failed." << std::endl;
+        //std::cerr << "Ping to " << IP << " failed." << std::endl;
         return VIP_ERR;
     }
 
@@ -177,8 +177,8 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	// Create a SOCKET for connecting to server
 	*ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (*ConnectSocket == INVALID_SOCKET) {
-		 std::cerr << "socket create error " << std::endl;
-		return VCONNECT_ERR;
+		// std::cerr << "socket create error " << std::endl;
+		return VSOCKET_ERR;
 	}
 
 #if (defined(_WIN32) || defined(_WIN64))
@@ -215,7 +215,7 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 #else
     } else if ((iResult < 0) && (errno == EINPROGRESS)) {
 #endif
-		std::cerr << "waiting for connection " << std::endl;
+		// std::cerr << "waiting for connection " << std::endl;
 		// Wait for the connection to complete
 		auto start = std::chrono::steady_clock::now();
 		fd_set writefds;
@@ -241,21 +241,21 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
                         return VOK;
                     } else {
                         errno = so_error;
-                        std::cerr << "socketopt error " << std::endl;
+                        //std::cerr << "socketopt error " << std::endl;
                         return VCONNECT_ERR;
                     }
                 }
             } else if (iResult < 0) {
                 // select error
-		 		std::cerr << "socket select error " << std::endl;
-                return VCONNECT_ERR;
+		 		//std::cerr << "socket select error " << std::endl;
+                return VSELECT_ERR;
             }
 		} while (std::chrono::steady_clock::now() - start <
-			std::chrono::milliseconds(1000));
+			std::chrono::milliseconds(500));
 
         // Timeout occurred
-		std::cerr << "socket timeout error " << std::endl;
-        return VCONNECT_ERR;
+		// std::cerr << "socket timeout error " << std::endl;
+        return VPORT_ERR; // If we timed out, we have a port error as the IP was checked
 	}
 	
 	#if defined(_WIN32) || defined(_WIN64)

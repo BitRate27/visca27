@@ -24,9 +24,14 @@ visca_error_t ViscaAPI::connectionStatus() {
 		return VCLOSED;
 	}
 	else if (result == -1) {
-		// An error occurred. This could mean that the connection was lost.
-		// Use WSAGetLastError() to get more info about the error.
-		return VCONNECT_ERR;
+		 int error = WSAGetLastError();
+        if (error == WSAEWOULDBLOCK) {
+            // The socket is non-blocking and there's no data to read.
+            return VOK;
+        } else {
+            // An error occurred. This could mean that the connection was lost.
+            return VCONNECT_ERR;
+        }
 	}
 	else {
 		// If recv() didn't return 0 or -1, the socket is still connected.
