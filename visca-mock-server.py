@@ -1,7 +1,7 @@
 import socket
 import threading
 import time
-
+import argparse
 def get_ip_address():
     # Create a temporary socket to get the IP address
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -102,9 +102,14 @@ class ViscaMockServer:
         return responses
     
 if __name__ == "__main__":
-    server = ViscaMockServer()
+    parser = argparse.ArgumentParser(description="Start the VISCA mock server.")
+    parser.add_argument("--host", type=str, help="The IP address to bind the server to.")
+    parser.add_argument("--port", type=int, default=5678, help="The port to bind the server to.")
+    args = parser.parse_args()
+
     try:
-        server.start()
+        server = ViscaMockServer(host=args.host, port=args.port)
+
     except KeyboardInterrupt:
         print("Shutting down server...")
-        server.stop()
+        
