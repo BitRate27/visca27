@@ -12,6 +12,9 @@
 #define VTIMEOUT_ERR 7
 #define VCLOSE_ERR 8
 #define VDISCONNECT_ERR 9
+#define VIP_ERR 10
+#define VCLOSED 11
+
 typedef struct {
 	int value1;
 	int value2;
@@ -25,7 +28,7 @@ public:
 	ViscaAPI();
 	~ViscaAPI();
 	visca_error_t connectCamera(std::string url, u_short port);
-	visca_error_t isConnected();
+	visca_error_t connectionStatus();
 	visca_error_t getPanTilt(visca_tuple_t& out);
 	visca_error_t setAbsolutePanTilt(visca_tuple_t pan_tilt);
 	visca_error_t getZoomLevel(short& out);

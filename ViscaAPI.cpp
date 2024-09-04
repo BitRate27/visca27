@@ -12,23 +12,21 @@ ViscaAPI::~ViscaAPI() {
 		CloseSocket(_connectSocket);
 	}
 };
-visca_error_t ViscaAPI::isConnected() {
+visca_error_t ViscaAPI::connectionStatus() {
 	if (_connectSocket == INVALID_SOCKET) {
-		return VERR;
+		return VNOSOCKET_ERR;
 	}
 	char buffer[1];
 	ssize_t result = recv(_connectSocket, buffer, sizeof(buffer), MSG_PEEK);
 	if (result == 0) {
 
 		// The recv function returns zero if the connection has been gracefully closed.
-		_connectSocket = INVALID_SOCKET;
-		return VERR;
+		return VCLOSED;
 	}
 	else if (result == -1) {
 		// An error occurred. This could mean that the connection was lost.
 		// Use WSAGetLastError() to get more info about the error.
-		_connectSocket = INVALID_SOCKET;
-		return VERR;
+		return VCONNECT_ERR;
 	}
 	else {
 		// If recv() didn't return 0 or -1, the socket is still connected.
