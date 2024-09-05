@@ -24,8 +24,11 @@ visca_error_t ViscaAPI::connectionStatus() {
 		return VCLOSED;
 	}
 	else if (result == -1) {
-		 int error = WSAGetLastError();
-        if (error == WSAEWOULDBLOCK) {
+#if defined(_WIN32) || defined(_WIN64)
+    	if ((result < 0) && (WSAGetLastError() == WSAEWOULDBLOCK)) {
+#else
+   		if ((result < 0) && (errno == EINPROGRESS)) {
+#endif
             // The socket is non-blocking and there's no data to read.
             return VOK;
         } else {
