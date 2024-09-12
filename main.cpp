@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
     }
 
     char* ipAddress = argv[1];
-    u_short port = (u_short)std::atoi(argv[2]);
+    int port = std::atoi(argv[2]);
 
     ViscaAPI cameraControl;
     visca_error_t result;
@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
 
     // Connected successfully, now get the zoom level
 
-    short zoomLevel = 10;
+    int zoomLevel = 10;
 
     result = cameraControl.setZoomLevel(zoomLevel);
     if (result != VOK) {
