@@ -4,7 +4,7 @@
 
 ViscaAPI::ViscaAPI() {
 	_url = "";
-	_port = -1;
+	_port = 0;
 	_connectSocket = INVALID_SOCKET;
 };
 ViscaAPI::~ViscaAPI() {
@@ -41,7 +41,7 @@ visca_error_t ViscaAPI::connectionStatus() {
 		return VOK;
 	}
 }
-visca_error_t ViscaAPI::connectCamera(std::string url, u_short port) {
+visca_error_t ViscaAPI::connectCamera(std::string url, int port) {
 	_url = url;
 	_port = port;
 	int result = OpenSocket(&_connectSocket, _url, _port);
@@ -80,7 +80,7 @@ visca_error_t ViscaAPI::setAbsolutePanTilt(visca_tuple_t pan_tilt) {
 	return result;
 };
 
-visca_error_t ViscaAPI::getZoomLevel(short& out) {
+visca_error_t ViscaAPI::getZoomLevel(int& out) {
 	std::string returnhex;
 	int result = GetCamera(_connectSocket, "81 09 04 47 FF", &returnhex);
 	out = 0;
@@ -91,7 +91,7 @@ visca_error_t ViscaAPI::getZoomLevel(short& out) {
 };
 
 static ValueConverter setZoomVC("81 01 04 47 0p 0p 0p 0p FF", 'p');
-visca_error_t ViscaAPI::setZoomLevel(short level) {
+visca_error_t ViscaAPI::setZoomLevel(int level) {
 	setZoomVC.init();
 	setZoomVC.setValue('p', level);
 	int result = SetCamera(_connectSocket, setZoomVC.getCommand());
@@ -103,7 +103,7 @@ visca_error_t ViscaAPI::getHorizontalFlip(bool& out) {
 	int result = GetCamera(_connectSocket, "81 09 04 61 FF", &returnhex);
 	out = 0;
 	if (result == VOK) {
-		short flip = getHexVC.getValue('p', returnhex);
+		int flip = getHexVC.getValue('p', returnhex);
 		out = (flip == 2);
 	}
 	return result;
@@ -121,7 +121,7 @@ visca_error_t ViscaAPI::getVerticalFlip(bool& out) {
 	int result = GetCamera(_connectSocket, "81 09 04 66 FF", &returnhex);
 	out = 0;
 	if (result == VOK) {
-		short flip = getHexVC.getValue('p', returnhex);
+		int flip = getHexVC.getValue('p', returnhex);
 		out = (flip == 2);
 	}
 	return result;
@@ -135,14 +135,14 @@ visca_error_t ViscaAPI::setVerticalFlip(bool flip) {
 };
 
 static ValueConverter recallPresetVC("81 01 04 3f 02 pp FF", 'p');
-visca_error_t ViscaAPI::recallPreset(uint8_t preset) {
+visca_error_t ViscaAPI::recallPreset(int preset) {
 	recallPresetVC.setValue('p', preset);
 	int result = SetCamera(_connectSocket, recallPresetVC.getCommand());
 	return result;
 };
 
 static ValueConverter setPresetVC("81 01 04 3f 01 pp FF", 'p');
-visca_error_t ViscaAPI::setPreset(uint8_t preset) {
+visca_error_t ViscaAPI::setPreset(int preset) {
 	setPresetVC.setValue('p', preset);
 	int result = SetCamera(_connectSocket, setPresetVC.getCommand());
 	return result;

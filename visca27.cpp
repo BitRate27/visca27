@@ -145,7 +145,7 @@ int SetCamera(SOCKET ConnectSocket, std::string hexcmd)
 	}
 	return result;
 }
-int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
+int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 	int iResult;
 	*ConnectSocket = INVALID_SOCKET;
 	struct sockaddr_in clientService;
@@ -202,7 +202,7 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port) {
 	// IP address, and port of the server to be connected to.
 	clientService.sin_family = AF_INET;
 	clientService.sin_addr.s_addr = inet_addr(IP.c_str());
-	clientService.sin_port = htons(port);
+	clientService.sin_port = htons((u_short)port);
 
 	//----------------------
 	// Connect to server.
@@ -390,7 +390,7 @@ void ValueConverter::addField(char f) {
 	fields[f] = field;
 	nFields++;
 }
-short ValueConverter::getValue(char f, std::string replyString)
+int ValueConverter::getValue(char f, std::string replyString)
 {
 	auto it = fields.find(f);
 	if (it == fields.end()) return 0;
@@ -403,7 +403,7 @@ short ValueConverter::getValue(char f, std::string replyString)
 	for (size_t d = 0; d < field.nDigits; d++) {
 		valueHex[d] = replyString[field.startIndex + (d * field.skip)];
 	}
-	return static_cast<short>(std::stoi(std::string(valueHex, field.nDigits), nullptr, 16));
+	return static_cast<int>(std::stoi(std::string(valueHex, field.nDigits), nullptr, 16));
 }
 void ValueConverter::init()
 {

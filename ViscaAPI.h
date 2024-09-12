@@ -30,22 +30,22 @@ class ViscaAPI
 public:
 	ViscaAPI();
 	~ViscaAPI();
-	visca_error_t connectCamera(std::string url, u_short port);
+	visca_error_t connectCamera(std::string url, int port);
 	visca_error_t connectionStatus();
 	visca_error_t getPanTilt(visca_tuple_t& out);
 	visca_error_t setAbsolutePanTilt(visca_tuple_t pan_tilt);
-	visca_error_t getZoomLevel(short& out);
-	visca_error_t setZoomLevel(short level);
+	visca_error_t getZoomLevel(int& out);
+	visca_error_t setZoomLevel(int level);
 	visca_error_t getHorizontalFlip(bool& out);
 	visca_error_t setHorizontalFlip(bool flip);
 	visca_error_t getVerticalFlip(bool& out);
 	visca_error_t setVerticalFlip(bool flip);
-	visca_error_t recallPreset(uint8_t preset);
-	visca_error_t setPreset(uint8_t preset);
+	visca_error_t recallPreset(int preset);
+	visca_error_t setPreset(int preset);
 	visca_error_t disconnectCamera();
 private:
 	std::string _url;
-	u_short _port;
+	int _port;
 	visca_socket_t _connectSocket;
 };
 

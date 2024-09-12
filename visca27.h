@@ -41,7 +41,7 @@ typedef struct sockaddr SOCKADDR;
 #include <algorithm>
 #include <functional>
 
-int OpenSocket(SOCKET *ConnectSocket, std::string IP, u_short port = 5678);
+int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port = 5678);
 int CloseSocket(SOCKET ConnectSocket);
 int GetCamera(SOCKET ConnectSocket, std::string hexcmd, std::string *returnhex);
 int SetCamera(SOCKET ConnectSocket, std::string hexcmd);
@@ -62,7 +62,7 @@ public:
     ~ValueConverter();
     void init();
     void addField(char f);
-    short getValue(char f, std::string replyhex);
+    int getValue(char f, std::string replyhex);
     void setValue(char f, int val);
     std::string getCommand() {
         return command;
