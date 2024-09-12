@@ -40,6 +40,8 @@ public:
 	visca_error_t setHorizontalFlip(bool flip);
 	visca_error_t getVerticalFlip(bool& out);
 	visca_error_t setVerticalFlip(bool flip);
+	visca_error_t recallPreset(uint8_t preset);
+	visca_error_t setPreset(uint8_t preset);
 	visca_error_t disconnectCamera();
 private:
 	std::string _url;

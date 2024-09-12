@@ -133,3 +133,17 @@ visca_error_t ViscaAPI::setVerticalFlip(bool flip) {
 	int result = SetCamera(_connectSocket, setVFlipVC.getCommand());
 	return result;
 };
+
+static ValueConverter recallPresetVC("81 01 04 3f 02 pp FF", 'p');
+visca_error_t ViscaAPI::recallPreset(uint8_t preset) {
+	recallPresetVC.setValue('p', preset);
+	int result = SetCamera(_connectSocket, recallPresetVC.getCommand());
+	return result;
+};
+
+static ValueConverter setPresetVC("81 01 04 3f 01 pp FF", 'p');
+visca_error_t ViscaAPI::setPreset(uint8_t preset) {
+	setPresetVC.setValue('p', preset);
+	int result = SetCamera(_connectSocket, setPresetVC.getCommand());
+	return result;
+};
