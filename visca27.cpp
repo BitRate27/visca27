@@ -151,6 +151,7 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
 	struct sockaddr_in clientService;
 
 	// Check if the IP address is active using ping
+	/*
     std::string pingCommand;
 #if (defined(_WIN32) || defined(_WIN64))
     pingCommand = "ping -n 1 " + IP + " > NUL 2>&1";
@@ -163,7 +164,7 @@ int OpenSocket(SOCKET *ConnectSocket, std::string IP, int port) {
         //std::cerr << "Ping to " << IP << " failed." << std::endl;
         return VIP_ERR;
     }
-
+	*/
 #if (defined(_WIN32) || defined(_WIN64))
 	// Initialize Winsock
 	WSADATA wsaData;

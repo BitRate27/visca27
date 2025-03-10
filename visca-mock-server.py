@@ -109,7 +109,9 @@ if __name__ == "__main__":
 
     try:
         server = ViscaMockServer(host=args.host, port=args.port)
+        server.start()
 
     except KeyboardInterrupt:
+        server.stop()
         print("Shutting down server...")
         
