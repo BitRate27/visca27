@@ -1,6 +1,7 @@
 #include "ViscaAPI.h"
 #include <iostream>
-
+#include <thread>
+#include <chrono>
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <IP_ADDRESS> <PORT>" << std::endl;
@@ -14,23 +15,24 @@ int main(int argc, char* argv[]) {
     visca_error_t result;
 
     // Attempt to connect to the camera
-    result = cameraControl.connectCamera(ipAddress, port);
+    result = cameraControl.connectCamera(ipAddress, port, true, true);
  
     if (result != VOK) {
         std::cerr << "Failed to connect to camera. Error code: " << result << std::endl;
         return 1; // Exit with an error code
     }
+    std::cout << "Connected to camera successfully." << std::endl;
 
     // Connected successfully, now get the zoom level
 
-    int zoomLevel = 10;
-
+    int zoomLevel = 100;
+  
     result = cameraControl.setZoomLevel(zoomLevel);
     if (result != VOK) {
         std::cerr << "Failed to set zoom level. Error code: " << result << std::endl;
         return 1; // Exit with an error code
     }
-
+    std::cout << "Zoom level set to: " << zoomLevel << std::endl;
     result = cameraControl.getZoomLevel(zoomLevel);
     if (result != VOK) {
         std::cerr << "Failed to get zoom level. Error code: " << result << std::endl;
@@ -38,7 +40,7 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "Current zoomLevel: " << zoomLevel << std::endl;
 
-    visca_tuple_t pantilt = {20,30};
+    visca_tuple_t pantilt = {200,300};
     
     result = cameraControl.setAbsolutePanTilt(pantilt);
     if (result != VOK) {
@@ -81,11 +83,27 @@ int main(int argc, char* argv[]) {
             std::cout << "Enter new port: ";
             std::cin >> port;
 
-            result = cameraControl.connectCamera(ipAddress, port);
+            result = cameraControl.connectCamera(ipAddress, port, true, true);
             if (result == VOK) {
                 std::cout << "Connected to new camera successfully." << std::endl;
             } else {
                 std::cerr << "Failed to connect to new camera. Error code: " << result << std::endl;
+            }
+        } else if (command == 4) {
+            std::cout << "Enter new zoom level: ";
+            std::cin >> zoomLevel;
+            result = cameraControl.setZoomLevel(zoomLevel);
+            if (result != VOK) {
+                std::cerr << "Failed to set zoom level. Error code: " << result << std::endl;
+                return 1; // Exit with an error code
+            } else {
+                std::this_thread::sleep_for(std::chrono::milliseconds(zoomLevel)); // Wait for 1 second
+                result = cameraControl.getZoomLevel(zoomLevel);
+                if (result != VOK) {
+                    std::cerr << "Failed to get zoom level. Error code: " << result << std::endl;
+                    return 1; // Exit with an error code
+                }
+                std::cout << "Zoom level set to: " << zoomLevel << std::endl;
             }
         } else {
             std::cerr << "Invalid command." << std::endl;

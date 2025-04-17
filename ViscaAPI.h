@@ -30,7 +30,8 @@ class ViscaAPI
 public:
 	ViscaAPI();
 	~ViscaAPI();
-	visca_error_t connectCamera(std::string url, int port);
+	visca_error_t connectCamera(std::string url, int port, bool udp = false, bool encapsulated = false);
+	visca_error_t reconnectCamera();
 	visca_error_t connectionStatus();
 	visca_error_t getPanTilt(visca_tuple_t& out);
 	visca_error_t setAbsolutePanTilt(visca_tuple_t pan_tilt);
@@ -43,9 +44,14 @@ public:
 	visca_error_t recallPreset(int preset);
 	visca_error_t setPreset(int preset);
 	visca_error_t disconnectCamera();
+
 private:
 	std::string _url;
 	int _port;
+	int32_t _sequence;
+	bool _udp;
+	bool _encapsulated;
+	visca_error_t _result;
 	visca_socket_t _connectSocket;
 };
 
